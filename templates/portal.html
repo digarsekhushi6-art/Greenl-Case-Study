@@ -10,7 +10,7 @@
     <div>
       <span class="badge badge-{{ meta.color }}">{{ meta.client_label }}</span>
       <div style="font-size:15px; font-weight:600; margin-top:10px;">{{ ret.type }}</div>
-      <div class="muted" style="font-size:13px;">Target completion: {{ ret.due_date.strftime('%B %-d, %Y') if ret.due_date.day > 3 else ret.due_date.strftime('%B %-d, %Y') }}</div>
+      <div class="muted" style="font-size:13px;">Target completion: {{ ret.due_date | nicedate }}</div>
     </div>
     {% if ret.status == 'awaiting_client' %}
     <a href="/returns/{{ return_id }}/messages" class="btn">See what's needed →</a>

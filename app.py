@@ -5,6 +5,13 @@ app = Flask(__name__)
 app.secret_key = "case-study-demo-key-not-for-production"
 
 
+@app.template_filter("nicedate")
+def nicedate(dt, fmt="%B {d}, %Y"):
+    """Cross-platform 'day without leading zero' formatting.
+    (Linux/Mac use %-d, Windows uses %#d -- this avoids both.)"""
+    return dt.strftime(fmt.replace("{d}", str(dt.day)))
+
+
 # ---------------------------------------------------------------------------
 # helpers
 # ---------------------------------------------------------------------------

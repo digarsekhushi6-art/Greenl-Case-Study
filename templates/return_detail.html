@@ -51,7 +51,7 @@
   <div class="card">
     <div class="card-title">Key dates</div>
     <div style="font-size:13.5px; line-height:2;">
-      <div>Target completion: <strong>{{ ret.due_date.strftime('%b %-d, %Y') }}</strong></div>
+      <div>Target completion: <strong>{{ ret.due_date | nicedate('%b {d}, %Y') }}</strong></div>
       <div>Tax year: <strong>{{ ret.year }}</strong></div>
     </div>
   </div>

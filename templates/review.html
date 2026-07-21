@@ -55,6 +55,11 @@
 <div class="trace-layout" x-data="traceApp()">
   <div class="card">
     <div class="card-title">Return fields</div>
+    {% if not fields %}
+    <div class="muted" style="font-size:13px; padding:16px 4px;">
+      No traceability data has been generated yet for this return. Sample data is wired up on <a href="/returns/R-2025-001/review" style="color:var(--navy); font-weight:600;">R-2025-001 (Sarah Chen)</a> — try that one.
+    </div>
+    {% else %}
     <table>
       <tr><th>Line item</th><th>Value</th><th></th></tr>
       {% for f in fields %}
@@ -79,6 +84,7 @@
       </tr>
       {% endfor %}
     </table>
+    {% endif %}
   </div>
 
   <div class="doc-viewer">
