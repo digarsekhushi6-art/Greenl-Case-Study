@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Welcome - GreenLedger{% endblock %}
+{% block breadcrumbs %}<span class="current">Getting started</span>{% endblock %}
+{% block content %}
+<div style="max-width:640px;">
+  <h1 style="font-size:22px; margin-bottom:4px;">Welcome, Jordan.</h1>
+  <p class="muted" style="margin-top:0;">Let's get your 2025 return started. This should take about 10 minutes today &mdash; the rest happens as your documents come in.</p>
+
+  <div class="card" style="border-color:var(--navy); background:#F1F5FA;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-weight:700; font-size:15px;">Next: Upload your W-2 and 1099s</div>
+        <div class="muted" style="font-size:13px;">2 of 5 steps done &middot; about 5 minutes</div>
+      </div>
+      <a href="#" class="btn">Start this step →</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Your checklist</div>
+    {% for item in checklist %}
+    <div style="display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line);">
+      {% if item.done %}
+        <span style="color:var(--teal); font-size:16px;">✓</span>
+      {% else %}
+        <span style="width:16px; height:16px; border:1.5px solid var(--line); border-radius:50%; display:inline-block;"></span>
+      {% endif %}
+      <span style="{{ 'color:var(--ink-soft); text-decoration:line-through;' if item.done }}">{{ item.label }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card" style="background:transparent; border-style:dashed;">
+    <div class="card-title">What you won't see yet</div>
+    <div class="muted" style="font-size:13px; line-height:1.7;">
+      Messaging, the full document library, and return review are hidden from your navigation until intake is complete &mdash;
+      there's nothing there yet, so we don't show empty tabs. They'll appear automatically once your preparer starts working on your return.
+    </div>
+  </div>
+</div>
+{% endblock %}

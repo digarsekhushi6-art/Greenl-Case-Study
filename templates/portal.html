@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Home - GreenLedger{% endblock %}
+{% block breadcrumbs %}<span class="current">Home</span>{% endblock %}
+{% block content %}
+<h1 style="font-size:22px; margin-bottom:2px;">Hi {{ user.name.split(' ')[0] }}.</h1>
+<p class="muted" style="margin-top:0;">Here's where your {{ ret.year }} return stands.</p>
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div>
+      <span class="badge badge-{{ meta.color }}">{{ meta.client_label }}</span>
+      <div style="font-size:15px; font-weight:600; margin-top:10px;">{{ ret.type }}</div>
+      <div class="muted" style="font-size:13px;">Target completion: {{ ret.due_date.strftime('%B %-d, %Y') if ret.due_date.day > 3 else ret.due_date.strftime('%B %-d, %Y') }}</div>
+    </div>
+    {% if ret.status == 'awaiting_client' %}
+    <a href="/returns/{{ return_id }}/messages" class="btn">See what's needed →</a>
+    {% elif ret.status == 'ready_to_file' %}
+    <a href="#" class="btn">Review &amp; sign →</a>
+    {% else %}
+    <a href="/returns/{{ return_id }}/documents" class="btn btn-ghost">View documents</a>
+    {% endif %}
+  </div>
+
+  <div class="stage-track" style="margin-top:22px;">
+    {% for s in ret.stages %}
+      {% set i = loop.index0 %}
+      {% set stage_i = ret.stages.index(ret.current_stage) %}
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <div class="stage-dot {{ 'done' if i < stage_i else ('current' if i == stage_i else '') }}"></div>
+        <div class="stage-label">{{ stage_labels[s] }}</div>
+      </div>
+      {% if not loop.last %}<div class="stage-bar {{ 'done' if i < stage_i }}"></div>{% endif %}
+    {% endfor %}
+  </div>
+
+  {% if ret.blocking %}
+  <div class="thread-note" style="background:var(--red-bg); color:var(--red); margin-top:16px;">
+    <strong>What's blocking this:</strong> {{ ret.blocking }}
+  </div>
+  {% else %}
+  <div class="thread-note" style="margin-top:16px;">
+    Nothing is needed from you right now &mdash; {{ ret.preparer }} is currently working on your return.
+  </div>
+  {% endif %}
+</div>
+
+<div class="card" style="background:transparent; border-style:dashed;">
+  <div class="card-title">Why one status, not ten</div>
+  <div class="muted" style="font-size:13px; line-height:1.7;">
+    Your preparer sees a detailed stage-by-stage breakdown. You only see what changes for you: what's happening,
+    whether anything is needed from you, and when to expect the next update &mdash; so "In Review" always means the same thing to you that it means to them.
+  </div>
+</div>
+{% endblock %}

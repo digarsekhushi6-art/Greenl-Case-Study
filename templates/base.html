@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{% block title %}GreenLedger{% endblock %}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">GreenLedger <small>Client &amp; CPA workspace</small></div>
+
+    {% if role == 'client' %}
+      <a class="nav-link {{ 'active' if active=='portal' }}" href="/portal">🏠 Home</a>
+      {% if 'Day 1' not in user.context %}
+      <a class="nav-link {{ 'active' if active=='documents' }}" href="/returns/{{ default_return }}/documents">📄 Documents</a>
+      <a class="nav-link {{ 'active' if active=='messages' }}" href="/returns/{{ default_return }}/messages">💬 Messages</a>
+      {% endif %}
+    {% else %}
+      <a class="nav-link {{ 'active' if active=='dashboard' }}" href="/dashboard">🏠 Dashboard</a>
+      <a class="nav-link {{ 'active' if active=='returns' }}" href="/dashboard#returns">📁 Returns</a>
+      <div class="nav-section-label">Current return</div>
+      {% if current_return %}
+      <a class="nav-link {{ 'active' if active=='overview' }}" href="/returns/{{ current_return }}">📋 Overview</a>
+      <a class="nav-link {{ 'active' if active=='review' }}" href="/returns/{{ current_return }}/review">🔎 Review &amp; Trace</a>
+      <a class="nav-link {{ 'active' if active=='documents' }}" href="/returns/{{ current_return }}/documents">📄 Documents</a>
+      <a class="nav-link {{ 'active' if active=='messages' }}" href="/returns/{{ current_return }}/messages">💬 Messages</a>
+      {% endif %}
+      {% if role == 'admin' %}
+      <div class="nav-section-label">Firm</div>
+      <a class="nav-link" href="/dashboard">⚙️ Staff &amp; Roles</a>
+      {% endif %}
+    {% endif %}
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumbs">
+        {% block breadcrumbs %}{% endblock %}
+      </div>
+      <div x-data="{ open: false }" style="position:relative;">
+        <div class="role-pill" @click="open = !open">
+          <div class="avatar">{{ user.initials }}</div>
+          <div>
+            <div style="font-weight:600;">{{ user.name }}</div>
+            <div style="font-size:11px; color:var(--ink-soft);">{{ role_label }} · {{ user.context }}</div>
+          </div>
+          <span style="color:var(--ink-soft);">▾</span>
+        </div>
+        <div class="role-menu" x-show="open" @click.outside="open = false" x-cloak>
+          <div style="padding:6px 10px 8px; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft);">Switch account / role</div>
+          {% for key, u in all_users.items() %}
+          <a href="/switch-role/{{ key }}">
+            <span style="font-weight:600;">{{ u.name }}</span>
+            <span class="sub">{{ role_labels[u.role] }} · {{ u.context }}</span>
+          </a>
+          {% endfor %}
+          <div style="border-top:1px solid var(--line); margin:6px 0;"></div>
+          <a href="/login" style="color:var(--ink-soft);">← Back to role picker</a>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+</body>
+</html>

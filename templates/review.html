@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Review - {{ ret.id }} - GreenLedger{% endblock %}
+{% block breadcrumbs %}
+<a href="/dashboard">Dashboard</a> <span>/</span> <a href="/returns/{{ return_id }}">{{ ret.id }}</a> <span>/</span> <span class="current">Review &amp; Trace</span>
+{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+  <div>
+    <h1 style="font-size:20px; margin-bottom:2px;">Review &amp; Trace</h1>
+    <div class="muted" style="font-size:13px;">{{ ret.client }} &middot; {{ ret.type }}</div>
+  </div>
+</div>
+
+<div style="display:flex; gap:4px; margin-bottom:16px;">
+  <a class="pill-tab" href="/returns/{{ return_id }}">Overview</a>
+  <span class="pill-tab active">Review &amp; Trace</span>
+  <a class="pill-tab" href="/returns/{{ return_id }}/documents">Documents</a>
+  <a class="pill-tab" href="/returns/{{ return_id }}/messages">Messages</a>
+</div>
+
+{% if insights %}
+<div class="card-title" style="margin-top:4px;">AI insights for this return</div>
+{% for ins in insights %}
+<div class="ai-panel">
+  <div class="ai-panel-header">
+    <div style="font-weight:700; font-size:13.5px;">✨ {{ ins.title }}</div>
+    <span class="muted" style="font-size:11.5px;">{{ ins.confidence }}% confidence</span>
+  </div>
+  <div class="confidence-bar"><div class="confidence-fill" style="width:{{ ins.confidence }}%;"></div></div>
+  <div style="font-size:13px; margin-bottom:8px;">{{ ins.body }}</div>
+  <details style="font-size:12px; color:var(--ink-soft); margin-bottom:10px;">
+    <summary style="cursor:pointer;">Why the AI flagged this</summary>
+    <ul style="margin:6px 0 0; padding-left:18px;">
+      {% for e in ins.evidence %}<li>{{ e }}</li>{% endfor %}
+    </ul>
+  </details>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <span class="muted" style="font-size:12.5px;">Suggested: {{ ins.action }}</span>
+    <a class="btn btn-sm" style="margin-left:auto;" href="/returns/{{ return_id }}/messages">Ask client →</a>
+    <span class="btn btn-sm btn-ghost">Dismiss</span>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="card-title" style="margin-top:10px;">Field affordance key</div>
+<div class="legend">
+  <div class="legend-item"><span class="legend-swatch" style="background:#fff; border:1px solid var(--line);"></span> Editable</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:var(--amber-bg); border:1px dashed #C99A4D;"></span> AI-generated &middot; click to inspect</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:var(--red-bg); border:1px dashed var(--red);"></span> Needs review</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:var(--teal-bg);"></span> Verified by a human</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:var(--slate-bg);"></span> Locked</div>
+</div>
+
+<div class="trace-layout" x-data="traceApp()">
+  <div class="card">
+    <div class="card-title">Return fields</div>
+    <table>
+      <tr><th>Line item</th><th>Value</th><th></th></tr>
+      {% for f in fields %}
+      <tr>
+        <td>{{ f.line }}</td>
+        <td>
+          <span class="field field-{{ f.state }}"
+                @click="{{ 'select(\'' + f.id + '\')' if f.state != 'locked' else '' }}"
+                :style="selected === '{{ f.id }}' ? 'outline:2px solid var(--navy); outline-offset:1px;' : ''">
+            {{ f.value }}
+            {% if f.state == 'ai_generated' %}<span class="field-icon">✨</span>
+            {% elif f.state == 'needs_review' %}<span class="field-icon">⚠</span>
+            {% elif f.state == 'verified' %}<span class="field-icon">✓</span>
+            {% elif f.state == 'locked' %}<span class="field-icon">🔒</span>
+            {% endif %}
+          </span>
+        </td>
+        <td>
+          {% if f.state == 'locked' %}<span class="muted" style="font-size:11.5px;">Locked after sign-off</span>
+          {% else %}<span class="muted" style="font-size:11.5px; cursor:pointer;" @click="select('{{ f.id }}')">View source →</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div class="doc-viewer">
+    <template x-if="!selected">
+      <div class="muted" style="font-size:13px; padding:30px 6px; text-align:center;">
+        Click any field on the left to trace it back to its source document.
+      </div>
+    </template>
+    <template x-if="selected && current">
+      <div>
+        <div class="card-title" style="margin-bottom:6px;">Source document</div>
+        <div style="font-weight:600; font-size:14px;" x-text="current.source_doc"></div>
+        <div class="muted" style="font-size:12px; margin-bottom:10px;" x-text="current.source_page + ' · ' + current.source_box"></div>
+        <div class="doc-page">
+          <div class="muted" style="font-size:11px; margin-bottom:8px;">SIMULATED DOCUMENT EXTRACT</div>
+          <span class="doc-highlight" x-text="current.extracted_snippet"></span>
+        </div>
+        <div class="thread-note">
+          <strong>How this became <span x-text="current.value"></span>:</strong><br>
+          <span x-text="current.transformation"></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+          <span class="muted" style="font-size:12px;">Extraction confidence</span>
+          <div class="confidence-bar" style="flex:1;"><div class="confidence-fill" :style="'width:' + current.confidence + '%'"></div></div>
+          <span style="font-size:12px; font-weight:600;" x-text="current.confidence + '%'"></span>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:14px;">
+          <span class="btn btn-sm">Mark verified</span>
+          <span class="btn btn-sm btn-ghost">Flag for correction</span>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<script>
+function traceApp(){
+  return {
+    selected: null,
+    current: null,
+    async select(id){
+      this.selected = id;
+      const res = await fetch('/api/ai/' + id);
+      this.current = await res.json();
+    }
+  }
+}
+</script>
+{% endblock %}

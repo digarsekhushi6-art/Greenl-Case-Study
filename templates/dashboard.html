@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - GreenLedger{% endblock %}
+{% block breadcrumbs %}<span class="current">Dashboard</span>{% endblock %}
+{% block content %}
+<h1 style="font-size:22px; margin-bottom:2px;">What needs you today</h1>
+<p class="muted" style="margin-top:0;">{{ total_tasks }} open items across your book of returns, ranked by urgency &mdash; not alphabetically, not by return number.</p>
+
+<div class="grid-2" style="grid-template-columns: repeat(4,1fr); margin-bottom:6px;">
+  <a href="/dashboard?filter=overdue" class="card" style="text-decoration:none; color:inherit; {{ 'border-color:var(--red);' if filt=='overdue' }}">
+    <div class="stat" style="color:var(--red);">{{ counts.overdue }}</div>
+    <div class="muted" style="font-size:12.5px;">Overdue</div>
+  </a>
+  <a href="/dashboard?filter=urgent" class="card" style="text-decoration:none; color:inherit; {{ 'border-color:var(--amber);' if filt=='urgent' }}">
+    <div class="stat" style="color:var(--amber);">{{ counts.urgent }}</div>
+    <div class="muted" style="font-size:12.5px;">Due today / tomorrow</div>
+  </a>
+  <a href="/dashboard?filter=soon" class="card" style="text-decoration:none; color:inherit; {{ 'border-color:var(--navy);' if filt=='soon' }}">
+    <div class="stat">{{ counts.soon }}</div>
+    <div class="muted" style="font-size:12.5px;">Due this week</div>
+  </a>
+  <a href="/dashboard?filter=all" class="card" style="text-decoration:none; color:inherit; {{ 'border-color:var(--navy);' if filt=='all' }}">
+    <div class="stat">{{ total_tasks }}</div>
+    <div class="muted" style="font-size:12.5px;">All open items</div>
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-title">Prioritized queue {{ '· ' + filt if filt != 'all' }}</div>
+  <table>
+    <tr><th>Task</th><th>Client / Return</th><th>Owner</th><th>Due</th><th></th></tr>
+    {% for t in tasks %}
+    <tr class="clickable-row" onclick="window.location='/returns/{{ t.return_id }}/review'">
+      <td>
+        {{ t.title }}
+        {% if t.blocked %}<span class="badge badge-red" style="margin-left:6px;">Blocked</span>{% endif %}
+      </td>
+      <td>{{ t.client }} <span class="muted">· {{ t.return_id }}</span></td>
+      <td>{{ t.owner }}</td>
+      <td>
+        {% if t.urgency == 'overdue' %}<span class="badge badge-red">{{ -t.due_in_days }}d overdue</span>
+        {% elif t.urgency == 'urgent' %}<span class="badge badge-amber">Due in {{ t.due_in_days }}d</span>
+        {% elif t.urgency == 'soon' %}<span class="badge badge-slate">Due in {{ t.due_in_days }}d</span>
+        {% else %}<span class="muted">In {{ t.due_in_days }}d</span>{% endif %}
+      </td>
+      <td class="muted">→</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <div class="muted" style="font-size:12px; margin-top:10px;">Showing top 20 of {{ total_tasks }} &mdash; ranked by a simple script: overdue first, then soonest due, blocked items surfaced inline rather than hidden in a separate view.</div>
+</div>
+
+<div class="card" id="returns">
+  <div class="card-title">Your active returns</div>
+  <table>
+    <tr><th>Return</th><th>Client</th><th>Status</th><th>Next action owner</th><th></th></tr>
+    {% for r in returns %}
+    <tr class="clickable-row" onclick="window.location='/returns/{{ r.id }}'">
+      <td>{{ r.id }}</td>
+      <td>{{ r.client }}</td>
+      <td><span class="badge badge-{{ status_meta[r.status].color }}">{{ status_meta[r.status].label }}</span></td>
+      <td>{{ r.next_action_owner|capitalize }}</td>
+      <td class="muted">→</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

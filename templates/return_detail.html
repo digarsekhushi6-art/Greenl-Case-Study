@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ ret.id }} - GreenLedger{% endblock %}
+{% block breadcrumbs %}
+<a href="/dashboard">Dashboard</a> <span>/</span> <span class="current">{{ ret.id }}</span>
+{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+  <div>
+    <h1 style="font-size:20px; margin-bottom:2px;">{{ ret.client }} <span class="muted" style="font-weight:400; font-size:15px;">&middot; {{ ret.id }}</span></h1>
+    <div class="muted" style="font-size:13px;">{{ ret.type }} &middot; Tax year {{ ret.year }}</div>
+  </div>
+  <span class="badge badge-{{ meta.color }}" style="font-size:13px; padding:5px 12px;">{{ meta.label }}</span>
+</div>
+
+<div style="display:flex; gap:4px; margin-bottom:16px;">
+  <span class="pill-tab active">Overview</span>
+  <a class="pill-tab" href="/returns/{{ return_id }}/review">Review &amp; Trace</a>
+  <a class="pill-tab" href="/returns/{{ return_id }}/documents">Documents</a>
+  <a class="pill-tab" href="/returns/{{ return_id }}/messages">Messages</a>
+</div>
+
+<div class="card">
+  <div class="card-title">Progress</div>
+  <div class="stage-track">
+    {% for s in ret.stages %}
+      {% set i = loop.index0 %}
+      {% set stage_i = ret.stages.index(ret.current_stage) %}
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <div class="stage-dot {{ 'done' if i < stage_i else ('current' if i == stage_i else '') }}"></div>
+        <div class="stage-label">{{ stage_labels[s] }}</div>
+      </div>
+      {% if not loop.last %}<div class="stage-bar {{ 'done' if i < stage_i }}"></div>{% endif %}
+    {% endfor %}
+  </div>
+  {% if ret.blocking %}
+  <div class="thread-note" style="background:var(--red-bg); color:var(--red); margin-top:14px;">
+    <strong>Blocking:</strong> {{ ret.blocking }} &middot; owner: {{ ret.next_action_owner|capitalize }}
+  </div>
+  {% endif %}
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Team</div>
+    <div style="font-size:13.5px; line-height:2;">
+      <div>Preparer: <strong>{{ ret.preparer }}</strong></div>
+      <div>Reviewer: <strong>{{ ret.reviewer or 'Not yet assigned' }}</strong></div>
+      <div>Next action owner: <strong>{{ ret.next_action_owner|capitalize }}</strong></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Key dates</div>
+    <div style="font-size:13.5px; line-height:2;">
+      <div>Target completion: <strong>{{ ret.due_date.strftime('%b %-d, %Y') }}</strong></div>
+      <div>Tax year: <strong>{{ ret.year }}</strong></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

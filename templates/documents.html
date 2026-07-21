@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Documents - {{ ret.id }} - GreenLedger{% endblock %}
+{% block breadcrumbs %}
+<a href="/dashboard">Dashboard</a> <span>/</span> <a href="/returns/{{ return_id }}">{{ ret.id }}</a> <span>/</span> <span class="current">Documents</span>
+{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+  <div>
+    <h1 style="font-size:20px; margin-bottom:2px;">Documents</h1>
+    <div class="muted" style="font-size:13px;">{{ total }} documents in the firm library {{ '(filtered)' if cat != 'all' or q }}</div>
+  </div>
+</div>
+
+{% if role != 'client' %}
+<div style="display:flex; gap:4px; margin-bottom:16px;">
+  <a class="pill-tab" href="/returns/{{ return_id }}">Overview</a>
+  <a class="pill-tab" href="/returns/{{ return_id }}/review">Review &amp; Trace</a>
+  <span class="pill-tab active">Documents</span>
+  <a class="pill-tab" href="/returns/{{ return_id }}/messages">Messages</a>
+</div>
+{% endif %}
+
+<form method="get" style="margin-bottom:12px;">
+  <input class="search-input" type="text" name="q" value="{{ q }}" placeholder="Search documents by name or client...">
+</form>
+<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;">
+  <a href="/returns/{{ return_id }}/documents?cat=all&q={{ q }}"><span class="chip {{ 'active' if cat=='all' }}">All</span></a>
+  {% for c in categories %}
+  <a href="/returns/{{ return_id }}/documents?cat={{ c }}&q={{ q }}"><span class="chip {{ 'active' if cat==c }}">{{ c }}</span></a>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <table>
+    <tr><th>Document</th><th>Category</th><th>Client</th><th>Uploaded</th><th>Status</th><th></th></tr>
+    {% for d in docs %}
+    <tr class="clickable-row" onclick="window.location='/returns/{{ return_id }}/review'">
+      <td>{{ d.name }} <span class="muted">({{ d.pages }}p)</span></td>
+      <td><span class="chip" style="cursor:default;">{{ d.category }}</span></td>
+      <td>{{ d.client }}</td>
+      <td class="muted">{{ d.uploaded }}</td>
+      <td>
+        {% if d.status == 'Processed' %}<span class="badge badge-teal">Processed</span>
+        {% elif d.status == 'Needs Review' %}<span class="badge badge-amber">Needs Review</span>
+        {% else %}<span class="badge badge-red">Flagged</span>{% endif %}
+      </td>
+      <td class="muted">{{ '🔗 linked task' if d.linked_task else '' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% if total > docs|length %}
+  <div class="muted" style="font-size:12px; margin-top:10px;">Showing {{ docs|length }} of {{ total }} matching documents. Search or filter to narrow further.</div>
+  {% endif %}
+</div>
+{% endblock %}
